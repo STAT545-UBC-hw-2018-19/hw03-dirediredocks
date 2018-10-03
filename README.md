@@ -1,3 +1,3 @@
 # Homework 3
 
-[Updoot this]
+This repo containes the `.Rmd` and the `.md` files for *Homework 3*.
