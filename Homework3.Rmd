@@ -1,0 +1,71 @@
+---
+title: "Homework3"
+output: github_document
+---
+
+Manipulation and exploration of the *Gapminder* dataset with the `dplyr` package, complemented by visualizations made with `ggplot2`. Each task will be tackled with a table and a figure. Within `tidyverse`, the `dplyr` function works as "pliers" for data frames, allowing the modification of data without leaving the R working space. *Gapminder* is the dataset itself, while `tidyverse` is the meta-package, a collection with tools like `ggplot2` for graphics, `tbl_df` for tibble data.frames, and `dplyr` for manipulating data. Before starting the packages must be loaded. The 
+
+```{r}
+library(gapminder)
+library(tidyverse)
+```
+
+### 1. First task: Get the maximum and minimum of GDP per capita for all continents.
+
+The piping operator `%>%` is part of the `dplyr` package, it works like nesting functions within functions, but without the use of parenthesis operators. It can be easily read from left to right. Here the *Gapminder* dataset is piped into a grouping by continent, which is in turn piped into a function that returns only the maxmimum (`maxGDP`) and minimum (`minGDP`) values per continent. The `knitr::kable()` function renders a text-ready table.
+
+```{r}
+gapminder %>% group_by(continent) %>% summarize(maxGDP = max(gdpPercap), minGDP = min(gdpPercap), Mean = mean(gdpPercap), Median = median(gdpPercap)) %>%
+ knitr::kable()
+```
+
+This can be plotted specifically for the maximum and minimum GDP per continent.
+
+```{r}
+GDPrange <- gapminder %>% group_by(continent) %>%
+  summarize(maxGDP = max(gdpPercap), minGDP = min(gdpPercap))
+ggplot(GDPrange, aes(maxGDP, minGDP)) + geom_boxplot(aes(color = continent))
+```
+
+### 2. Second task: Look at the spread of GDP per capita within the continents.
+
+Like before, piping the `summarize` function is a quick way to get relevant ranges of the data within each continent, speically the *Mean* and *Median*.
+
+```{r}
+gapminder %>% group_by(continent) %>%
+  summarize(Mean = mean(gdpPercap),
+            Median = median(gdpPercap)) %>%
+ knitr::kable()
+```
+
+A violin plot can show the spread of countries by GDP per continent, which visually shows the edges of GDP values, or the maximum and minimum values. Asia and Oceania have interesting plots: Asia has great internal spread, with very large and very small GDPs, while Oceania has a small range, but even its lowest GDP is greater than most other countries.
+
+```{r}
+Spread <- gapminder %>% group_by(country)
+ggplot(Spread, aes(gdpPercap, gdpPercap)) + geom_violin(aes(alpha=0.5, color = continent))
+```
+
+### 3. Third task: How is life expectancy changing over time on different continents?
+
+In the case we dont know the range of years studied, we can use piping to extract the first and last years of the time-series per continent. In this case all share the same starting and ending year, but its good practice to run this analysis because wild time-series datasets never match. Here the first year is 1952 and the last is 2007.
+
+```{r}
+gapminder %>% group_by(continent) %>% summarize(firstYear = min(year), lastYear = max(year)) %>%
+ knitr::kable()
+```
+
+Granted the spread observed before, it is possible that the average values within continents do not match the most frequent values. To observe the trends of both, it is possible to plot both the `Median` and the `Mean` over time per continent. Luckily, in this case both plots look very similar, with Asia expressing the greatest difference.
+
+
+```{r}
+gapminder %>%  group_by(year,continent) %>% summarize(Median = median(lifeExp)) %>%
+  ggplot(aes(y = Median, x = year, color = continent)) + geom_line()
+```
+
+```{r}
+gapminder %>%  group_by(year,continent) %>% summarize(Mean = mean(lifeExp)) %>%
+  ggplot(aes(y = Mean, x = year, color = continent)) + geom_line()
+```
+
+
+
